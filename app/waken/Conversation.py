@@ -4,8 +4,7 @@ from openai import OpenAI
 import os
 import sys
 
-# waken 参数
-PROMPT_ROOT = "./app/waken/prompts"
+
 
 sys.path.append("D:\Projects\WeChatMsg")
 # from app.config import *
@@ -68,7 +67,7 @@ class Conversation:
             ]
         )
         ret = completion.choices[0].message.content
-        logger.info(f"\nfor question: {question}, got answer: {ret}\n")
+        # logger.info(f"\nfor question: {question}, got answer: {ret}\n")
         return ret
 
 
