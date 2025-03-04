@@ -1,21 +1,10 @@
-import os
-import sys
+from config import *
 
-
-sys.path.append("D:\Projects\WeChatMsg")
 from app.log import logger
 from app.DataBase import msg
 from typing import Tuple
 from Conversation import Conversation
 from datetime import datetime, date
-
-
-
-# waken 参数
-WAKEN_USERNAME = "wxid_4l0w26l64zj022"
-PROMPT_ROOT = "./app/waken/prompts"
-HOUR_TIME = '04:00:00'
-
 
 
 class Waken:
@@ -31,6 +20,9 @@ class Waken:
             if one_msg_.startswith('<') or len(one_msg_) < 1:
                 continue
             ret.append(f"{sender}: {one_msg_}")
+        for i in range(len(ret)-1, -1, -1):
+            if i > 0 and ret[i][0] == ret[i-1][0]:
+                ret[i] = "    " + ret[i][3:]
         return ret
 
     def waken_between(self, time_range: Tuple[int | float | str | date, int | float | str | date] = None,):
@@ -41,11 +33,14 @@ class Waken:
             msg = file.read()
         msg = msg.replace("{records}", whole_msg_in_one_day)
         logger.info(msg)
-        # exit()
         response = Conversation().get_response_from_llm(question=msg)
         logger.info(response)
 
 
 if __name__ == "__main__":
-    Waken().waken_between(time_range=(
-        f"2023-5-4 {HOUR_TIME}", f"2023-5-5 {HOUR_TIME}"))
+    YEAR = 2023
+    MONTH = 5
+    DAY = 3
+    time_range = (f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}",
+                  f"{str(YEAR)}-{str(MONTH)}-{str(DAY+1)} {HOUR_TIME}")
+    Waken().waken_between(time_range)
