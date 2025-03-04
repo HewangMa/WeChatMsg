@@ -9,9 +9,9 @@ from datetime import datetime, date
 
 class Waken:
     def __init__(self) -> None:
-        pass
+        self.beauty = "-"*20
 
-    def get_and_parse_chat_msg(self, time_range):
+    def __get_and_parse_chat_msg(self, time_range):
         content = msg.Msg().get_messages(WAKEN_USERNAME, time_range)
         ret = []
         for one_msg in content:
@@ -25,22 +25,40 @@ class Waken:
                 ret[i] = "    " + ret[i][3:]
         return ret
 
-    def waken_between(self, time_range: Tuple[int | float | str | date, int | float | str | date] = None,):
-        msg_in_one_day = self.get_and_parse_chat_msg(time_range)
+    def waken_one_day(self, YEAR, MONTH, DAY):
+        time_range = (f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}",
+                      f"{str(YEAR)}-{str(MONTH)}-{str(DAY+1)} {HOUR_TIME}")
+        msg_in_one_day = self.__get_and_parse_chat_msg(time_range)
+        if msg_in_one_day is None:
+            return
         whole_msg_in_one_day = "\n".join(msg_in_one_day)
-
         with open(os.path.join(PROMPT_ROOT, "waken_prompt.txt"), 'r', encoding='utf-8') as file:
             msg = file.read()
         msg = msg.replace("{records}", whole_msg_in_one_day)
-        logger.info(msg)
+        token_len = token_len_of(msg)
+        if token_len > 4000:
+            logger.info("Records are more than 4000, please write manually")
+            return
         response = Conversation().get_response_from_llm(question=msg)
-        logger.info(response)
+        self.__exact_and_write(response, YEAR, MONTH, DAY)
+
+    def __exact_and_write(self, response, YEAR, MONTH, DAY):
+        header = f"{str(YEAR)}-{str(MONTH)}-{str(DAY)}: "
+        paras = response.split("{{split}}")
+        to_write = ['\n', header]+[self.beauty +
+                                   '\n' + p for p in paras if len(p) > 2]
+        file_name = f"{str(YEAR)}-{str(MONTH)}.txt"
+        file_path = os.path.join(WAKEN_RES_ROOT, file_name)
+        with open(file_path, 'a', encoding='utf-8') as file:
+            file.write('\n'.join(to_write))
+        logger.info(f"Successfully wrote records to {file_path}")
 
 
 if __name__ == "__main__":
+    day_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     YEAR = 2023
-    MONTH = 5
-    DAY = 3
-    time_range = (f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}",
-                  f"{str(YEAR)}-{str(MONTH)}-{str(DAY+1)} {HOUR_TIME}")
-    Waken().waken_between(time_range)
+    MONTH = 3
+    # DAY = 1
+    # Waken().waken_one_day(YEAR, MONTH, DAY)
+    for DAY in range(1, day_in_month[MONTH-1]+1):
+        Waken().waken_one_day(YEAR, MONTH, DAY)

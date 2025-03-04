@@ -1,22 +1,8 @@
-from tenacity import retry, stop_after_attempt, wait_exponential
-import jieba
-from openai import OpenAI
 import os
-import sys
-
-
-
-sys.path.append("D:\Projects\WeChatMsg")
-# from app.config import *
+from config import *
+from tenacity import retry, stop_after_attempt, wait_exponential
+from openai import OpenAI
 from app.log import logger
-
-
-def tokens(msg):
-    return list(jieba.cut(msg))
-
-
-def token_len_of(msg):
-    return len(tokens(msg))
 
 
 class Conversation:
@@ -58,7 +44,10 @@ class Conversation:
         if model not in self.qwen_models + self.deepseek_models:
             raise ValueError("model should be in list")
 
-        logger.info(f"sending msg having {token_len_of(rule+question)}~ ")
+        token_len = token_len_of(rule + question)
+        # if token_len>4000:
+        #     raise ValueError("records are more than 4000, please write manually")
+        logger.info(f"sending msg having {token_len} tokens! ")
         completion = client.chat.completions.create(
             model=model,
             messages=[
