@@ -1,8 +1,9 @@
 import os
 import sys
 import jieba
+
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-print(PROJECT_ROOT)
 sys.path.append(PROJECT_ROOT)
 WAKEN_ROOT = os.path.join(PROJECT_ROOT, 'app', 'waken')
 WAKEN_RES_ROOT = os.path.join(WAKEN_ROOT, "waken_res")

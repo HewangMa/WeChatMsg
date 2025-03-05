@@ -1,5 +1,5 @@
 import os
-from config import *
+from configAndUtils import *
 from tenacity import retry, stop_after_attempt, wait_exponential
 from openai import OpenAI
 from app.log import logger
