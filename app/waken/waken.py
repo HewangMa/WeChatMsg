@@ -10,6 +10,7 @@ from datetime import datetime, date
 class Waken:
     def __init__(self) -> None:
         self.beauty = "-"*20
+        self.bias = 6
 
     def __get_and_parse_chat_msg(self, time_range):
         content = msg.Msg().get_messages(WAKEN_USERNAME, time_range)
@@ -25,22 +26,36 @@ class Waken:
                 ret[i] = "    " + ret[i][3:]
         return ret
 
-    def waken_one_day(self, YEAR, MONTH, DAY):
-        time_range = (f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}",
-                      f"{str(YEAR)}-{str(MONTH)}-{str(DAY+1)} {HOUR_TIME}")
-        msg_in_one_day = self.__get_and_parse_chat_msg(time_range)
-        if msg_in_one_day is None:
-            return
-        whole_msg_in_one_day = "\n".join(msg_in_one_day)
+    def __waken_one_para(self, para):
         with open(os.path.join(PROMPT_ROOT, "waken_prompt.txt"), 'r', encoding='utf-8') as file:
             msg = file.read()
-        msg = msg.replace("{records}", whole_msg_in_one_day)
-        token_len = token_len_of(msg)
-        if token_len > 4000:
-            logger.info("Records are more than 4000, please write manually")
-            return
+        msg = msg.replace("{records}", para)
         response = Conversation().get_response_from_llm(question=msg)
         self.__exact_and_write(response, YEAR, MONTH, DAY)
+
+    def waken_one_day(self, YEAR, MONTH, DAY):
+        start_time = f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}"
+        end_time = f"{str(YEAR)}-{str(MONTH)}-{str(DAY+1)} {HOUR_TIME}"
+        time_range = (start_time, end_time)
+        msg_in_one_day = self.__get_and_parse_chat_msg(time_range)
+        msg_cnt = len(msg_in_one_day)
+        if msg_cnt < 1:
+            logger.info(f"None msg in {time_range}~~")
+            return
+        # 根据总量划分waken次数，并分段（前后来个bias）进行
+        whole_msg_in_one_day = "\n".join(msg_in_one_day)
+        token_len = token_len_of(whole_msg_in_one_day)
+        part_num = token_len//2000
+        part_msg_cnt = msg_cnt//part_num
+        for p_idx in range(part_num):
+            start = p_idx*part_msg_cnt
+            if start > 0:
+                start -= self.bias
+            end = (p_idx+1)*part_msg_cnt
+            if end < msg_cnt-1:
+                end += self.bias
+            self.__waken_one_para("\n".join(msg_in_one_day[start:end]))
+
 
     def __exact_and_write(self, response, YEAR, MONTH, DAY):
         header = f"{str(YEAR)}-{str(MONTH)}-{str(DAY)}: "
