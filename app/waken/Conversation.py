@@ -47,16 +47,16 @@ class Conversation:
         token_len = token_len_of(rule + question)
         # if token_len>4000:
         #     raise ValueError("records are more than 4000, please write manually")
-        logger.info(f"sending msg having {token_len} tokens! ")
+        logger.info(f"sending msg having {token_len} tokens to {model}! ")
         completion = client.chat.completions.create(
             model=model,
             messages=[
                 {'role': 'system', 'content': rule},
                 {'role': 'user', 'content': question}
-            ]
+            ],
+            temperature=0.2
         )
         ret = completion.choices[0].message.content
-        # logger.info(f"\nfor question: {question}, got answer: {ret}\n")
         return ret
 
 
