@@ -96,7 +96,7 @@ class Waken:
 
 
 if __name__ == "__main__":
-    YEAR = 2024
+    YEAR = 2025
     # MONTH = 4
     # DAY = 1
     # Waken().waken_one_day(YEAR, MONTH, DAY)
