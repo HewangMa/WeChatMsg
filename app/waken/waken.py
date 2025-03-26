@@ -97,10 +97,10 @@ class Waken:
 
 if __name__ == "__main__":
     YEAR = 2025
-    # MONTH = 4
+    # MONTH = 11
     # DAY = 1
     # Waken().waken_one_day(YEAR, MONTH, DAY)
-    for MONTH in range(1, 13):
+    for MONTH in range(3,13):
         for DAY in range(1, days_in_month(YEAR, MONTH)+1):
             day_str = f"{str(YEAR)}-{str(MONTH)}-{str(DAY)} {HOUR_TIME}"
             Waken(day_str).waken_one_day()
